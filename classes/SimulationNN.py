@@ -11,7 +11,7 @@ from typing import Optional
 # Local imports
 from classes.PID import PID
 from classes.Systems import BaseSystem
-from classes.Simulation import KP, Simulation
+from classes.Simulation import Simulation
 
 
 class SimulationNN(Simulation):

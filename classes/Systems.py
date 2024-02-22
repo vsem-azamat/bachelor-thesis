@@ -50,6 +50,7 @@ class Trolley(BaseSystem):
 		self.mass: Tensor = torch.tensor(mass)
 		self.friction: Tensor = torch.tensor(friction)
 		self.spring_constant: Tensor = torch.tensor(50.)
+		self.spring_natural_length: Tensor = torch.tensor(0.)
 		self.dt: Tensor = torch.tensor(dt)
 		self.position: Tensor = torch.tensor(0.)
 		self.delta_position: Tensor = torch.tensor(0.)
@@ -70,16 +71,16 @@ class Trolley(BaseSystem):
 		Equation of model:
             F = ma
             a = F/m
-            a = F/m - friction*v/m
+            a = F/m - friction*v/m - spring_constant*delta_x/m
             v = v + a*dt
             x = x + v*dt
 		"""
 		F = control_output
-		acceleration = F / self.mass - self.friction * self.velocity / self.mass - self.spring_constant * self.delta_position / self.mass
+		delta_x = self.position - self.spring_natural_length
+		acceleration = F / self.mass - self.friction * self.velocity / self.mass - self.spring_constant * delta_x / self.mass
 		self.velocity += acceleration * self.dt
-		position = self.position + self.velocity * self.dt
-		self.delta_position = position - self.position
-		self.position = position
+		self.position += self.velocity * self.dt
+
 
 
 	def get_position(self) -> Tensor:
@@ -124,7 +125,7 @@ class ContinuousTankHeating(BaseSystem):
 		self.Q: Tensor = torch.tensor(2.)
 
 	# TODO: fix the equation of the model
-	def update(self, control_output: Tensor, distrubance: Tensor = torch.tensor(0.)) -> None:
+	def apply_control(self, control_output: Tensor, distrubance: Tensor = torch.tensor(0.)) -> None:
 		"""
 		Update the position and velocity of the trolley
 		
@@ -139,6 +140,7 @@ class ContinuousTankHeating(BaseSystem):
 			epsilon: ratio of the heat capacity of the tank to the heat capacity of the fluid
 		"""
 		Tq = control_output
+		
 
 		dTdt = 1/(1 + self.epsilon) * (1/self.tau * (self.Tf - self.T) + self.Q * (Tq - self.T))
 		self.T += dTdt * self.dt
