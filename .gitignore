@@ -4,6 +4,9 @@ plots/
 test*
 *bad*.pth
 /*.pth
+wandb/
+runs/
+notes*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
